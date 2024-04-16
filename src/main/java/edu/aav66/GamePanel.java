@@ -72,10 +72,15 @@ public class GamePanel extends JPanel implements ActionListener
         new Thread( new Runnable() {
             public void run()
             {
-                try ( FileInputStream fileInputStream = new FileInputStream( filePath ) )
+                try
                 {
-                    Player player = new Player( fileInputStream );
-                    player.play();
+                    while ( true )
+                    { // Loop to allow the music to replay indefinitely
+                        FileInputStream fileInputStream = new FileInputStream( filePath );
+                        Player player = new Player( fileInputStream );
+                        player.play();
+                        player.close();
+                    }
                 }
                 catch ( Exception e )
                 {
@@ -387,6 +392,12 @@ public class GamePanel extends JPanel implements ActionListener
                 if ( direction != 'U' && direction != 'D' )
                 {
                     direction = 'D';
+                }
+                break;
+            case KeyEvent.VK_SPACE:
+                if ( !running && replayButton.isEnabled() )
+                {
+                    restartGame();
                 }
                 break;
             }
