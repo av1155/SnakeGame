@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.7.0</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -31,17 +31,39 @@
 
     <build>
         <plugins>
+
+            <!-- Add this configuration for maven-resources-plugin to exclude highscore.txt -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>txt</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                    <resources>
+                        <resource>
+                            <directory>${project.basedir}/src/main/resources</directory>
+                            <excludes>
+                                <exclude>highscore.txt</exclude> <!-- Exclude the highscore.txt file -->
+                            </excludes>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.0</version>
                 <configuration>
                     <mainClass>edu.aav66.SnakeGame</mainClass>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.7.1</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -62,6 +84,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 
