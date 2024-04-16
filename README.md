@@ -10,9 +10,13 @@ Welcome to SnakeGame! This classic game has been recreated in Java to bring you 
 -   Replay Capability
 -   Background Music
 
+<p align="center">
+  <img src="SnakeGame.png" alt="SnakeGame Preview" width="500"/>
+</p>
+
 ## Installation
 
-To play SnakeGame, you will need to download the JAR file and have Java installed on your computer.
+To play SnakeGame, you will need to download the JAR file from [releases](https://github.com/av1155/SnakeGame/releases) and have Java installed on your computer.
 
 ### Prerequisites
 
@@ -22,7 +26,7 @@ To play SnakeGame, you will need to download the JAR file and have Java installe
 
 You can download the latest version of SnakeGame from the following link:
 
-[Download SnakeGame.jar](target/SnakeGame.jar)
+[Download SnakeGame.jar](https://github.com/av1155/SnakeGame/releases)
 
 ## How to Run
 
