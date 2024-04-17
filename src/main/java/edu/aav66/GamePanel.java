@@ -35,6 +35,11 @@ public class GamePanel extends JPanel implements ActionListener
     static final Color APPLE_COLOR = new Color( 204, 0, 0, 220 );
     static final Color SCORE_COLOR = new Color( 204, 0, 0, 220 );
 
+    private JButton colorToggleButton;
+    private boolean useRandomBodyColor = false; // Default to using BODY_COLOR
+
+    private JButton replayButton;
+
     // Constants for font sizes
     private static final Font LARGE_FONT = new Font( "Futura", Font.BOLD, 75 );
     private static final Font MEDIUM_FONT = new Font( "Futura", Font.BOLD, 40 );
@@ -47,7 +52,6 @@ public class GamePanel extends JPanel implements ActionListener
     private BufferedImage appleSprite;
     public int bodyParts = 6;
     public int applesEaten;
-    int highScore;
     public int appleX;
     public int appleY;
     public char direction = 'R';
@@ -55,8 +59,10 @@ public class GamePanel extends JPanel implements ActionListener
     Timer timer;
     Random random;
 
-    private JButton replayButton;
     String resourcesPath = "/Users/andreaventi/Developer/Snake/src/main/resources/";
+
+    private int highScore = 0;
+    private String highScorePath;
     private String devPath = resourcesPath + "highscore.txt";
     private String prodPath = "highscore.txt";
 
@@ -88,8 +94,22 @@ public class GamePanel extends JPanel implements ActionListener
         this.setFocusable( true );                 // Allow the panel to receive keyboard input
         this.addKeyListener( new MyKeyAdapter() ); // Add key listener for controlling the snake
 
-        loadAppleSprite();
+        // Initialize the color toggle button
+        colorToggleButton = new JButton( "Standard Color" );
+        colorToggleButton.setFont( new Font( "Futura", Font.BOLD, 20 ) );
+        colorToggleButton.addActionListener( new ActionListener() {
+            @Override public void actionPerformed( ActionEvent e )
+            {
+                useRandomBodyColor = !useRandomBodyColor; // Toggle the color mode
+                colorToggleButton.setText( useRandomBodyColor ? "Random Colors" : "Standard Color" );
+            }
+        } );
+        colorToggleButton.setBounds( SCREEN_WIDTH / 2 - 75, SCREEN_HEIGHT - 180, 150, 40 );
+        colorToggleButton.setEnabled( false );
+        colorToggleButton.setFocusable( false );
+        this.add( colorToggleButton );
 
+        // Initialize the replay button
         replayButton = new JButton( "Replay" );
         replayButton.setFont( new Font( "Futura", Font.BOLD, 20 ) );
         replayButton.addActionListener( new ActionListener() {
@@ -97,8 +117,13 @@ public class GamePanel extends JPanel implements ActionListener
         } );
         replayButton.setBounds( SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT - 60, 100, 40 );
         replayButton.setEnabled( false );
+        replayButton.setFocusable( true );
         this.add( replayButton );
 
+        initializeHighScore();
+        readHighScore();
+
+        loadAppleSprite();
         startGame();
         playMusic( resourcesPath + "DRIVE(chosic.com).mp3" );
     }
@@ -109,8 +134,13 @@ public class GamePanel extends JPanel implements ActionListener
      */
     public void startGame()
     {
-        replayButton.setEnabled( false ); // Disable the button until next game over.
-        replayButton.setVisible( false ); // Hide the button until next game over.
+        // Disable the replay button until the game is over
+        replayButton.setEnabled( false );
+        replayButton.setVisible( false );
+
+        // Disable the color toggle button until the game is over
+        colorToggleButton.setEnabled( false );
+        colorToggleButton.setVisible( false );
 
         newApple();
         running = true;
@@ -139,34 +169,39 @@ public class GamePanel extends JPanel implements ActionListener
      */
     public void draw( Graphics g )
     {
-        if ( running )
+        if ( !running )
         {
-            if ( appleSprite != null )
-                g.drawImage( appleSprite, appleX, appleY, UNIT_SIZE, UNIT_SIZE, this );
-            else
-            { // Draw the apple as a colored oval
-                g.setColor( APPLE_COLOR );
-                g.fillOval( appleX, appleY, UNIT_SIZE, UNIT_SIZE );
-            }
+            gameOver( g );
+            return;
+        }
 
-            // Draw the snake
-            for ( int i = 0; i < bodyParts; i++ )
+        // If the apple sprite is loaded, draw the apple sprite
+        if ( appleSprite != null )
+            g.drawImage( appleSprite, appleX, appleY, UNIT_SIZE, UNIT_SIZE, this );
+        else
+        { // Otherwise draw a colored oval
+            g.setColor( APPLE_COLOR );
+            g.fillOval( appleX, appleY, UNIT_SIZE, UNIT_SIZE );
+        }
+
+        // Draw the snake with the selected color mode
+        for ( int i = 0; i < bodyParts; i++ )
+        {
+            if ( useRandomBodyColor )
             {
                 Color randomBodyColor =
                     new Color( random.nextInt( 255 ), random.nextInt( 255 ), random.nextInt( 255 ), 220 );
-
-                // If the current segment is the head, draw it with the head color
-                // Otherwise, draw the body with a random body color
                 g.setColor( i == 0 ? HEAD_COLOR : randomBodyColor );
-                g.fillRect( x[i], y[i], UNIT_SIZE, UNIT_SIZE );
             }
-
-            // // Draw the current score
-            drawCenteredText( g, "Score: " + applesEaten, MEDIUM_FONT, MEDIUM_FONT.getSize() );
+            else
+            {
+                g.setColor( i == 0 ? HEAD_COLOR : BODY_COLOR );
+            }
+            g.fillRect( x[i], y[i], UNIT_SIZE, UNIT_SIZE );
         }
 
-        else
-            gameOver( g );
+        // // Draw the current score
+        drawCenteredText( g, "Score: " + applesEaten, MEDIUM_FONT, MEDIUM_FONT.getSize() );
     }
 
     /**
@@ -226,8 +261,6 @@ public class GamePanel extends JPanel implements ActionListener
         {
             bodyParts++;
             applesEaten++;
-            highScore = Math.max( highScore, applesEaten );
-            writeHighScore();
             newApple();
         }
     }
@@ -277,12 +310,17 @@ public class GamePanel extends JPanel implements ActionListener
      */
     public void gameOver( Graphics g )
     {
+        highScore = Math.max( highScore, applesEaten );
+        writeHighScore();
+
         drawCenteredText( g, "Game Over", LARGE_FONT, SCREEN_HEIGHT / 3 );
         drawCenteredText( g, "High Score: " + readHighScore(), MEDIUM_FONT, SCREEN_HEIGHT / 3 + LARGE_FONT.getSize() );
         drawCenteredText( g, "Score: " + applesEaten, MEDIUM_FONT,
                           SCREEN_HEIGHT / 3 + LARGE_FONT.getSize() + MEDIUM_FONT.getSize() + 20 );
 
+        // Enable the color toggle button and replay button
         setupReplayButton();
+        setupColorToggleButton();
     }
 
     /**
@@ -400,6 +438,21 @@ public class GamePanel extends JPanel implements ActionListener
     }
 
     /**
+     * Configures and displays the color toggle button.
+     */
+    private void setupColorToggleButton()
+    {
+        int buttonWidth = 280;
+        int buttonHeight = 50;
+        int buttonX = ( SCREEN_WIDTH - buttonWidth ) / 2;
+        int buttonY = SCREEN_HEIGHT - 180;
+
+        colorToggleButton.setBounds( buttonX, buttonY, buttonWidth, buttonHeight );
+        colorToggleButton.setEnabled( true );
+        colorToggleButton.setVisible( true );
+    }
+
+    /**
      * Configures and displays the replay button.
      */
     private void setupReplayButton()
@@ -434,8 +487,14 @@ public class GamePanel extends JPanel implements ActionListener
         directionQueue.clear();
         direction = 'R';
         running = true;
-        replayButton.setEnabled( false ); // Disable the button until next game over.
-        replayButton.setVisible( false ); // Hide the button until next game over.
+
+        // Disable the replay button until the game is over
+        replayButton.setEnabled( false );
+        replayButton.setVisible( false );
+
+        // Disable the color toggle button until the game is over
+        colorToggleButton.setEnabled( false );
+        colorToggleButton.setVisible( false );
 
         newApple();
         timer.stop();                     // Stop the current timer
@@ -475,68 +534,61 @@ public class GamePanel extends JPanel implements ActionListener
         } ).start();
     }
 
-    private String getHighScorePath()
+    /**
+     * Initializes high score management by setting the file path and reading the high score.
+     * This method determines the correct path for the high score file by checking if the
+     * development path exists; if not, it uses the production path. It then reads the
+     * high score from the determined file.
+     */
+    private void initializeHighScore()
     {
-        File devFile = new File( devPath );
-        if ( devFile.exists() )
-        {
-            return devPath;
-        }
-        else
-        {
-            return prodPath;
-        }
+        highScorePath = new File( devPath ).exists() ? devPath : prodPath;
+        highScore = readHighScore(); // Adjust the readHighScore method to return int
     }
 
     /**
-     * Writes the current high score to a file named "highscore.txt".
-     * This method uses a BufferedWriter to write the high score as a string to a file.
-     * If an IOException occurs during file writing, it logs the exception message
-     * and prints the stack trace to the standard error stream.
+     * Writes the current high score to the file.
+     * This method attempts to write the current high score to a designated file. If an error occurs
+     * during the file writing process, such as an IOException, the error is logged and the stack
+     * trace is printed. This ensures that the application can gracefully handle file system issues.
      */
     public void writeHighScore()
     {
-        File file = new File( getHighScorePath() );
-        try ( BufferedWriter writer = new BufferedWriter( new FileWriter( file ) ) )
+        try ( BufferedWriter writer = new BufferedWriter( new FileWriter( highScorePath ) ) )
         {
             writer.write( Integer.toString( highScore ) );
         }
         catch ( IOException e )
         {
-            System.err.println( "Problem writing high score file " + getHighScorePath() );
+            System.err.println( "Problem writing high score file " + highScorePath );
             e.printStackTrace();
         }
     }
 
     /**
-     * Reads the high score from a file named "highscore.txt".
-     * This method attempts to open and read the high score from the file.
-     * If the file does not exist, it returns 0. If the file exists but contains invalid data
-     * (data that is not an integer), it logs an error message. If the file is not found
-     * during the read operation, it logs a file not found error and prints the stack trace.
+     * Reads the high score from a file and returns it.
+     * This method checks if the high score file exists and reads the high score if available.
+     * If the file does not exist or no valid integer score is found, it returns 0. It handles
+     * the FileNotFoundException to ensure the application remains stable if the file is
+     * unexpectedly missing.
      *
-     * @return the high score read from the file, or 0 if an error occurs or if the file does not exist
+     * @return The high score read from the file, or 0 if the file does not exist or contains no valid score.
      */
-    public int readHighScore()
+    private int readHighScore()
     {
-        File file = new File( getHighScorePath() );
+        File file = new File( highScorePath );
         if ( !file.exists() )
             return 0;
 
         try ( Scanner scanner = new Scanner( file ) )
         {
-            if ( scanner.hasNextInt() )
-                highScore = scanner.nextInt();
-
-            else
-                System.err.println( "Invalid data in high score file" );
+            return scanner.hasNextInt() ? scanner.nextInt() : 0;
         }
         catch ( FileNotFoundException e )
         {
-            System.err.println( "High score file not found: " + getHighScorePath() );
+            System.err.println( "High score file not found: " + highScorePath );
             e.printStackTrace();
+            return 0;
         }
-
-        return highScore;
     }
 }
