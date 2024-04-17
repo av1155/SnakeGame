@@ -36,7 +36,7 @@ public class GamePanel extends JPanel implements ActionListener
     static final Color SCORE_COLOR = new Color( 204, 0, 0, 220 );
 
     private JButton colorToggleButton;
-    private boolean useRandomBodyColor = false; // Default to using BODY_COLOR
+    private boolean useRainbowBodyColor = true; // Default to rainbow body color
 
     private JButton replayButton;
 
@@ -95,13 +95,13 @@ public class GamePanel extends JPanel implements ActionListener
         this.addKeyListener( new MyKeyAdapter() ); // Add key listener for controlling the snake
 
         // Initialize the color toggle button
-        colorToggleButton = new JButton( "Standard Color" );
+        colorToggleButton = new JButton( "Rainbow Colors" );
         colorToggleButton.setFont( new Font( "Futura", Font.BOLD, 20 ) );
         colorToggleButton.addActionListener( new ActionListener() {
             @Override public void actionPerformed( ActionEvent e )
             {
-                useRandomBodyColor = !useRandomBodyColor; // Toggle the color mode
-                colorToggleButton.setText( useRandomBodyColor ? "Random Colors" : "Standard Color" );
+                useRainbowBodyColor = !useRainbowBodyColor; // Toggle the color mode
+                colorToggleButton.setText( useRainbowBodyColor ? "Rainbow Colors" : "Green Color" );
             }
         } );
         colorToggleButton.setBounds( SCREEN_WIDTH / 2 - 75, SCREEN_HEIGHT - 180, 150, 40 );
@@ -187,7 +187,7 @@ public class GamePanel extends JPanel implements ActionListener
         // Draw the snake with the selected color mode
         for ( int i = 0; i < bodyParts; i++ )
         {
-            if ( useRandomBodyColor )
+            if ( useRainbowBodyColor )
             {
                 Color randomBodyColor =
                     new Color( random.nextInt( 255 ), random.nextInt( 255 ), random.nextInt( 255 ), 220 );
