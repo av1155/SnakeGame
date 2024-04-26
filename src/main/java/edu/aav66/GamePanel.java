@@ -59,7 +59,7 @@ public class GamePanel extends JPanel implements ActionListener
     Timer timer;
     Random random;
 
-    String resourcesPath = "/Users/andreaventi/Developer/Snake/src/main/resources/";
+    String resourcesPath = "/Users/andreaventi/Developer/GameDev/Snake/src/main/resources/";
 
     private int highScore = 0;
     private String highScorePath;
